@@ -1,0 +1,13 @@
+app:
+  name: myyfan
+
+crons:
+  lunch:
+    - "0 45 10 * * ?"
+    - "0 0 11 * * ?"
+  dinner:
+    - "0 30 16 * * ?"
+    - "0 50 16 * * ?"
+
+account:
+  qwWebHook: "WebHookURL"
