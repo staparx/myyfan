@@ -3,11 +3,13 @@ app:
 
 crons:
   lunch:
-    - "0 45 10 * * ?"
-    - "0 0 11 * * ?"
+    - "0 50 10 * * ?"
+    - "0 45 11 * * ?"
   dinner:
-    - "0 30 16 * * ?"
-    - "0 50 16 * * ?"
+    - "0/10 * * * * ?"
+    - "0 0 18 * * ?"
+
 
 account:
-  qwWebHook: "WebHookURL"
+  qwWebHook: "qwWebHook"
+  youFanURL: "youFanURL"
