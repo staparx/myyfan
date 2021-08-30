@@ -26,8 +26,11 @@ func main() {
 			title := titleTemplate.ExecuteString(map[string]interface{}{
 				"emoji": Picker.Pick(loveEmojis...),
 			})
-			date := GetTodayTime()
-
+			date, err := GetTodayTime()
+			if err != nil {
+				log.Error(err.Error())
+				return
+			}
 			//筛选消息，第一条为订餐提醒，第二条为用餐提醒
 			var body string
 			var extra string
@@ -79,7 +82,11 @@ func main() {
 			title := titleTemplate.ExecuteString(map[string]interface{}{
 				"emoji": Picker.Pick(loveEmojis...),
 			})
-			date := GetTodayTime()
+			date, err := GetTodayTime()
+			if err != nil {
+				log.Error(err.Error())
+				return
+			}
 
 			//筛选消息，第一条为订餐提醒，第二条为用餐提醒
 			var body string

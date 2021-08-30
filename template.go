@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"strconv"
 	"time"
 
@@ -8,6 +9,9 @@ import (
 	"github.com/valyala/fasttemplate"
 )
 
+var (
+	ErrWeekEnd = errors.New("今天是周末，996可是违反的哦~")
+)
 var (
 	//Markdown消息
 	markdownTemplate = fasttemplate.New("## {{title}} \n > ### {{date}} \n  \n > ## {{body}} \n \n ###### {{extra}}  ", "{{", "}}")
@@ -88,9 +92,13 @@ func (c *color) GetColorWord(color string, word string) string {
 }
 
 // GetTodayTime 获取现在时间
-func GetTodayTime() string {
+func GetTodayTime() (string, error) {
 	month := carbon.CreateFromTimestamp(time.Now().Unix()).Month()
-	weekdayStr := GetWeekStr(carbon.CreateFromTimestamp(time.Now().Unix()).DayOfWeek())
+	dayOfWeek := carbon.CreateFromTimestamp(time.Now().Unix()).DayOfWeek()
+	if dayOfWeek > 5 {
+		return "", ErrWeekEnd
+	}
+	weekdayStr := GetWeekStr(dayOfWeek)
 	day := carbon.CreateFromTimestamp(time.Now().Unix()).Day()
 	timer := time.Now().Format("15:04:05")
 	date := dateTemplate.ExecuteString(map[string]interface{}{
@@ -99,5 +107,5 @@ func GetTodayTime() string {
 		"week":  weekdayStr,
 		"time":  timer,
 	})
-	return date
+	return date, nil
 }
