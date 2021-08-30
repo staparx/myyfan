@@ -2,10 +2,8 @@ package main
 
 import (
 	"context"
-	"strconv"
 	"time"
 
-	"github.com/golang-module/carbon"
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
 )
@@ -20,31 +18,44 @@ func main() {
 	)
 
 	//午餐消息定时推送
-	for _, lunch := range cfg.Crons.Lunch {
+	for key, lunch := range cfg.Crons.Lunch {
+		sort := key
 		if _, err := schedule.AddFunc(lunch, func() {
 			color := NewColor()
 			//午餐消息内容组装
 			title := titleTemplate.ExecuteString(map[string]interface{}{
 				"emoji": Picker.Pick(loveEmojis...),
 			})
-			month := carbon.CreateFromTimestamp(time.Now().Unix()).Month()
-			weekdayStr := GetWeekStr(carbon.CreateFromTimestamp(time.Now().Unix()).DayOfWeek())
-			day := carbon.CreateFromTimestamp(time.Now().Unix()).Day()
-			timer := time.Now().Format("15:04:05")
-			date := dateTemplate.ExecuteString(map[string]interface{}{
-				"month": strconv.Itoa(month),
-				"day":   strconv.Itoa(day),
-				"week":  weekdayStr,
-				"time":  timer,
-			})
-			body := lunchTemplate.ExecuteString(map[string]interface{}{
-				"emoji1": Picker.Pick(foodEmojis...),
-				"emoji2": Picker.Pick(loveEmojis...),
-			})
+			date, err := GetTodayTime()
+			if err != nil {
+				log.Error(err.Error())
+				return
+			}
+			//筛选消息，第一条为订餐提醒，第二条为用餐提醒
+			var body string
+			var extra string
+			switch sort {
+			case 0:
+				body = lunchOrderTemplate.ExecuteString(map[string]interface{}{
+					"emoji1": Picker.Pick(foodEmojis...),
+					"emoji2": Picker.Pick(loveEmojis...),
+				})
+			case 1:
+				body = lunchTemplate.ExecuteString(map[string]interface{}{
+					"emoji1": Picker.Pick(foodEmojis...),
+					"emoji2": Picker.Pick(loveEmojis...),
+				})
+			default:
+				body = defaultTemplate.ExecuteString(map[string]interface{}{
+					"emoji": "💢",
+				})
+			}
+
 			markdown := markdownTemplate.ExecuteString(map[string]interface{}{
 				"title": color.GetColorWord(color.warning, title),
-				"date":  color.GetColorWord(color.comment, date),
-				"body":  color.GetColorWord(color.comment, body),
+				"date":  date,
+				"body":  body,
+				"extra": color.GetColorWord(color.comment, extra),
 			})
 			log.Info("get markdown text", zap.String("markdown", markdown))
 			req := &msgReq{
@@ -63,31 +74,47 @@ func main() {
 	}
 
 	//晚餐消息定时推送
-	for _, dinner := range cfg.Crons.Dinner {
+	for key, dinner := range cfg.Crons.Dinner {
+		sort := key
 		if _, err := schedule.AddFunc(dinner, func() {
 			color := NewColor()
 			//晚餐消息内容组装
 			title := titleTemplate.ExecuteString(map[string]interface{}{
 				"emoji": Picker.Pick(loveEmojis...),
 			})
-			month := carbon.CreateFromTimestamp(time.Now().Unix()).Month()
-			weekdayStr := GetWeekStr(carbon.CreateFromTimestamp(time.Now().Unix()).DayOfWeek())
-			day := carbon.CreateFromTimestamp(time.Now().Unix()).Day()
-			timer := time.Now().Format("15:04:05")
-			date := dateTemplate.ExecuteString(map[string]interface{}{
-				"month": strconv.Itoa(month),
-				"day":   strconv.Itoa(day),
-				"week":  weekdayStr,
-				"time":  timer,
-			})
-			body := dinnerTemplate.ExecuteString(map[string]interface{}{
-				"emoji1": Picker.Pick(foodEmojis...),
-				"emoji2": Picker.Pick(loveEmojis...),
-			})
+			date, err := GetTodayTime()
+			if err != nil {
+				log.Error(err.Error())
+				return
+			}
+
+			//筛选消息，第一条为订餐提醒，第二条为用餐提醒
+			var body string
+			var extra string
+			switch sort {
+			case 0:
+				body = dinnerOrderTemplate.ExecuteString(map[string]interface{}{
+					"emoji1": Picker.Pick(foodEmojis...),
+					"emoji2": Picker.Pick(loveEmojis...),
+				})
+				extra = extraTemplate.ExecuteString(map[string]interface{}{
+					"extra": cfg.Account.YouFanURL,
+				})
+			case 1:
+				body = dinnerTemplate.ExecuteString(map[string]interface{}{
+					"emoji1": Picker.Pick(foodEmojis...),
+					"emoji2": Picker.Pick(loveEmojis...),
+				})
+			default:
+				body = defaultTemplate.ExecuteString(map[string]interface{}{
+					"emoji": "💢",
+				})
+			}
 			markdown := markdownTemplate.ExecuteString(map[string]interface{}{
 				"title": color.GetColorWord(color.warning, title),
-				"date":  color.GetColorWord(color.comment, date),
-				"body":  color.GetColorWord(color.comment, body),
+				"date":  date,
+				"body":  body,
+				"extra": extra,
 			})
 			log.Info("get markdown text", zap.String("markdown", markdown))
 			req := &msgReq{

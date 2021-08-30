@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/spf13/viper"
-	"go.uber.org/zap"
 	"time"
 	_ "time/tzdata"
+
+	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 type (
@@ -27,6 +28,7 @@ type (
 	// Account 用户相关信息
 	account struct {
 		QwWebHook string //企业微信的机器人WebHook
+		YouFanURL string //企业微信悠饭的URL
 	}
 )
 
